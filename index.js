@@ -32,7 +32,6 @@ let users = [];
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
 });
-
 require('./services/socket')(io);
 
 
