@@ -34,14 +34,14 @@ module.exports = io => {
                         userId: socket.id,
                         reqUser: engagedUserId,
                         accUser: socket.id,
-                        type: 'acceptedUser'
+                        type: 'accUser'
                     });
                     socket.to(engagedRoomId).emit('userConnected', {
                         id: engagedRoomId,
-                        userId: socket.id,
+                        userId: engagedUserId.id,
                         reqUser: engagedUserId,
                         accUser: socket.id,
-                        type: 'acceptedUser'
+                        type: 'reqUser'
                     })
                 } else {
                     setRoomId({roomId, userId: socket.id}, (sql, values, cb) => {
