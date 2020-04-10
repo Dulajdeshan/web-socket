@@ -38,7 +38,7 @@ module.exports = io => {
                     });
                     socket.to(engagedRoomId).emit('userConnected', {
                         id: engagedRoomId,
-                        userId: engagedUserId.id,
+                        userId: engagedUserId,
                         reqUser: engagedUserId,
                         accUser: socket.id,
                         type: 'reqUser'
