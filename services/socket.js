@@ -35,7 +35,7 @@ module.exports = io => {
                         userId: socket.id,
                         type: 'acceptedUser'
                     });
-                    socket.to(engagedRoomId).emit('userConnected', {id: socket.id})
+                    socket.to(engagedRoomId).emit('userConnected', {id: engagedRoomId,userId:socket.id,type:'acceptedUser'})
                 } else {
                     setRoomId({roomId,userId:socket.id}, (sql, values, cb) => {
                         socket.join(roomId);
