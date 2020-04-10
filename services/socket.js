@@ -49,6 +49,8 @@ module.exports = io => {
                         socket.emit('joinedRoom', {
                             id: roomId,
                             userId: socket.id,
+                            reqUser: socket.id,
+                            accUser: "None",
                             type: 'reqUser'
                         })
                     })
