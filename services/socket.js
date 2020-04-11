@@ -66,7 +66,8 @@ module.exports = io => {
             const message = data['message'];
             const type = data['type'];
             const userId = data['userId'];
-            socket.to(roomId).emit(`newMessage`, {message, type, userId, roomId});
+            const sendTime = new Date().getTime().toString();
+            socket.to(roomId).emit(`newMessage`, {message, time: sendTime,type, userId, roomId});
         });
 
 
@@ -111,8 +112,6 @@ module.exports = io => {
             })
         });
 
-
-        // database.end();
     });
 
 
