@@ -123,28 +123,29 @@ module.exports = io => {
                     const disconnectedUser = connectedUsers[0];
                     const roomId = disconnectedUser['roomId'];
 
-                    socket.to(roomId).emit('userLeft', {id: disconnectedUser['id']});
+                    if(roomId) {
+                        socket.to(roomId).emit('userLeft', {id: disconnectedUser['id']});
 
-                    io.of('/').in(roomId).clients((error, socketIds) => {
-                        if (error) throw error;
-                        socketIds.forEach(socketId => {
-                            const currentSocket = io.sockets.sockets[socketId];
-                            if(socketId !== socket.id) {
-                                updateUserStatus({userId: socketId}, (status, values) => {
-                                    console.log(`Client ${socket.id} status has been updated`);
-                                });
-                            }
-                            currentSocket.leave(roomId);
+                        io.of('/').in(roomId).clients((error, socketIds) => {
+                            if (error) throw error;
+                            socketIds.forEach(socketId => {
+                                const currentSocket = io.sockets.sockets[socketId];
+                                if(socketId !== socket.id) {
+                                    updateUserStatus({userId: socketId}, (status, values) => {
+                                        console.log(`Client ${socket.id} status has been updated`);
+                                    });
+                                }
+                                currentSocket.leave(roomId);
+                            });
+                            console.log(`Client - ${socketIds} removed from the room ${roomId}`);
                         });
-                        console.log(`Client - ${socketIds} removed from the room ${roomId}`);
-                    });
 
+                    }
                     deleteUser({userId: socket.id}, (sql, values, db) => {
                         console.log(`Client ${socket.id} has been removed from the database`);
                     })
 
                 }
-
 
             });
 
