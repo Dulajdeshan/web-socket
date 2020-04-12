@@ -61,13 +61,22 @@ module.exports = io => {
 
         });
 
+        socket.on("onUserTyping", (data)=> {
+            const {roomId,status,userId} = data;
+            socket.to(roomId).emit("userTyping", {
+                "roomId": roomId,
+                "userId": userId,
+                "status": status
+            })
+        });
+
         socket.on('onMessage', (data) => {
             const roomId = data['roomId'];
             const message = data['message'];
             const type = data['type'];
             const userId = data['userId'];
-            const sendTime = new Date().getTime().toString();
-            socket.to(roomId).emit(`newMessage`, {message, time: sendTime,type, userId, roomId});
+            const time = data['time'];
+            socket.to(roomId).emit(`newMessage`, {message, time: time,type, userId, roomId});
         });
 
 
