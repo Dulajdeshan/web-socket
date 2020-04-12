@@ -1,5 +1,5 @@
 const uuid = require('node-uuid');
-const {getConnectedUser, deleteUser, addUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus} = require('./db');
+const {getConnectedUser, deleteUser, addUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
 
 
 module.exports = io => {
@@ -116,9 +116,35 @@ module.exports = io => {
         });
 
         socket.on('disconnect', function (data) {
-            deleteUser({userId: socket.id}, (sql, values, db) => {
-                console.log(`Client ${socket.id} has been removed from the database`);
-            })
+
+            getRoomId({userId:socket.id}, (sql,values,db)=> {
+                const connectedUsers = JSON.parse(JSON.stringify(values));
+                if(connectedUsers.length > 0) {
+                    const disconnectedUser = connectedUsers[0];
+                    const roomId = disconnectedUser['roomId'];
+
+                    socket.to(roomId).emit('userLeft', {id: disconnectedUser['id']});
+
+                    io.of('/').in(roomId).clients((error, socketIds) => {
+                        if (error) throw error;
+                        socketIds.forEach(socketId => {
+                            const currentSocket = io.sockets.sockets[socketId];
+                            if(socketId !== socket.id) {
+                                updateUserStatus({userId: socketId}, (status, values) => {
+                                    console.log(`Client ${socket.id} status has been updated`);
+                                });
+                            }
+                            currentSocket.leave(roomId);
+                        });
+                        console.log(`Client - ${socketIds} removed from the room ${roomId}`);
+                    });
+
+                }
+
+
+            });
+
+
         });
 
     });

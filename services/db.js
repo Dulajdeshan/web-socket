@@ -194,5 +194,51 @@ exports.updateUserStatus = function(data,callback) {
 };
 
 
+exports.getRoomId = function(data,callback) {
+    pool.getConnection(function(err, connection) {
+        if(err) {
+            console.log(err);
+            callback(true);
+            return;
+        }
+        const  {userId} = data;
+        const sql = `SELECT * FROM Users WHERE id = '${userId}'`;
+        connection.query(sql, [], function(err, results) {
+            if(err) {
+                console.log(err);
+                callback(true);
+                return;
+            }
+            console.log(results);
+            callback(false, results);
+            connection.destroy(); // always put connection back in pool after last query
+        });
+
+    });
+};
+
+
+exports.updateUserStatus = function(data,callback) {
+    pool.getConnection(function(err, connection) {
+        if(err) {
+            console.log(err);
+            callback(true);
+            return;
+        }
+        const  {userId} = data;
+        const sql = `UPDATE Users SET roomId = NULL, isEngaged = false WHERE id = '${userId}'`;
+        connection.query(sql, [], function(err, results) {
+            if(err) {
+                console.log(err);
+                callback(true);
+                return;
+            }
+            callback(false, results);
+            connection.destroy(); // always put connection back in pool after last query
+        });
+
+    });
+};
+
 
 
