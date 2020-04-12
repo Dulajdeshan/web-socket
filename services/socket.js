@@ -139,6 +139,10 @@ module.exports = io => {
                         console.log(`Client - ${socketIds} removed from the room ${roomId}`);
                     });
 
+                    deleteUser({userId: socket.id}, (sql, values, db) => {
+                        console.log(`Client ${socket.id} has been removed from the database`);
+                    })
+
                 }
 
 
