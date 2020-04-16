@@ -124,9 +124,9 @@ module.exports = io => {
                         const roomId = connectedUsers[0]['roomId'];
                         updateUserStatus({userId: socket.id}, (status, values) => {
                             console.log(`Client ${socket.id} status has been updated`);
-                            socket.leave(data.roomId);
+                            socket.leave(roomId);
                         });
-                        socket.leave(roomId);
+
 
                     }
                 });
