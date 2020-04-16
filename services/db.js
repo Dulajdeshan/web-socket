@@ -29,7 +29,7 @@ exports.addUser = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
