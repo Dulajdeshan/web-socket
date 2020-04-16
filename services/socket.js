@@ -118,9 +118,17 @@ module.exports = io => {
                 })
 
             }else {
-                updateUserStatus({userId: socket.id}, (status, values) => {
-                    console.log(`Client ${socket.id} status has been updated`);
-                    socket.leave(data.roomId);
+                getRoomId({userId:socket.id}, (sql,values,db)=> {
+                    const connectedUsers = JSON.parse(JSON.stringify(values));
+                    if(connectedUsers.length > 0) {
+                        const roomId = connectedUsers[0]['roomId'];
+                        updateUserStatus({userId: socket.id}, (status, values) => {
+                            console.log(`Client ${socket.id} status has been updated`);
+                            socket.leave(data.roomId);
+                        });
+                        socket.leave(roomId);
+
+                    }
                 });
             }
 
