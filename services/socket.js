@@ -109,7 +109,11 @@ module.exports = io => {
 
                 } else {
                     console.log(`B - Client - ${socket.id} removed from the room ${roomId}`);
-                    socket.leave(roomId);
+                    updateUserStatus({userId: socket.id}, (status, values) => {
+                        console.log(`Client ${socket.id} status has been updated`);
+                        socket.leave(roomId);
+                    });
+
                 }
             })
         });
