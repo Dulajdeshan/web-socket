@@ -29,7 +29,7 @@ exports.addUser = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.release(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -51,7 +51,7 @@ exports.getAvailableUsers = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.release(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -72,7 +72,7 @@ exports.checkUserExists = function(data,callback) {
               return;
           }
           callback(false,results);
-          connection.disconnect();
+          connection.destroy();
       })
 
   })
@@ -94,7 +94,7 @@ exports.updateCurrentUser = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -117,7 +117,7 @@ exports.setRoomId = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -139,7 +139,7 @@ exports.setEngaged = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -161,7 +161,7 @@ exports.deleteUser = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -184,7 +184,7 @@ exports.getConnectedUser = function(data,callback) {
             }
             console.log(results);
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -207,7 +207,7 @@ exports.updateUserStatus = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -231,7 +231,7 @@ exports.getRoomId = function(data,callback) {
             }
             console.log(results);
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
@@ -254,7 +254,7 @@ exports.updateUserStatus = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.disconnect(); // always put connection back in pool after last query
+            connection.destroy(); // always put connection back in pool after last query
         });
 
     });
