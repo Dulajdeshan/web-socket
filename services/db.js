@@ -119,7 +119,7 @@ exports.setEngaged = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
@@ -141,7 +141,7 @@ exports.deleteUser = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
@@ -164,7 +164,7 @@ exports.getConnectedUser = function(data,callback) {
             }
             console.log(results);
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
@@ -187,7 +187,7 @@ exports.updateUserStatus = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
@@ -211,7 +211,7 @@ exports.getRoomId = function(data,callback) {
             }
             console.log(results);
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
@@ -234,7 +234,7 @@ exports.updateUserStatus = function(data,callback) {
                 return;
             }
             callback(false, results);
-            connection.destroy(); // always put connection back in pool after last query
+            connection.release(); // always put connection back in pool after last query
         });
 
     });
