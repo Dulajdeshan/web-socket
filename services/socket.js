@@ -117,6 +117,11 @@ module.exports = io => {
                     }
                 })
 
+            }else {
+                updateUserStatus({userId: socket.id}, (status, values) => {
+                    console.log(`Client ${socket.id} status has been updated`);
+                    socket.leave(data.roomId);
+                });
             }
 
         });
