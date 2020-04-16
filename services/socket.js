@@ -1,5 +1,4 @@
-const uuid = require('node-uuid');
-const {getConnectedUser, deleteUser, addUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
+const {checkUserExists,getConnectedUser, deleteUser, addUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
 
 
 module.exports = io => {
@@ -131,16 +130,23 @@ module.exports = io => {
                             socketIds.forEach(socketId => {
                                 const currentSocket = io.sockets.sockets[socketId];
                                 if(socketId !== socket.id) {
-                                    updateUserStatus({userId: socketId}, (status, values) => {
-                                        console.log(`Client ${socket.id} status has been updated`);
+                                    checkUserExists({userId:socketId},(status,values)=> {
+                                        const userExists = JSON.parse(JSON.stringify(values));
+                                        if(userExists.length > 0){
+                                            updateUserStatus({userId: socketId}, (status, values) => {
+                                                console.log(`Client ${socket.id} status has been updated`);
+                                            });
+                                        }
                                     });
+
                                 }
                                 currentSocket.leave(roomId);
                             });
                             console.log(`Client - ${socketIds} removed from the room ${roomId}`);
                         });
-
                     }
+
+
                     deleteUser({userId: socket.id}, (sql, values, db) => {
                         console.log(`Client ${socket.id} has been removed from the database`);
                     })

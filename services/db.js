@@ -57,6 +57,26 @@ exports.getAvailableUsers = function(data,callback) {
     });
 };
 
+exports.checkUserExists = function(data,callback) {
+  pool.getConnection(function (err,connection) {
+      if(err) {
+          console.log(err);
+          callback(true);
+          return;
+      }
+      const {userId} = data;
+      const sql = `SELECT * FROM Users WHERE id = '${userId}'`;
+      connection.query(sql,[],function (err,results) {
+          if(err) {
+              callback(true);
+              return;
+          }
+          callback(false,results);
+          connection.release();
+      })
+
+  })
+};
 
 exports.updateCurrentUser = function(data,callback) {
     pool.getConnection(function(err, connection) {
