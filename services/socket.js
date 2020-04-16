@@ -80,42 +80,45 @@ module.exports = io => {
 
 
         socket.on('leaveRoom', function (data) {
-            const {roomId} = data;
 
-            getConnectedUser({roomId, userId: socket.id}, (status, values) => {
-                const connectedUser = JSON.parse(JSON.stringify(values));
-                if (connectedUser.length > 0) {
-                    const connectedUserId = connectedUser[0]['id'];
-                    console.log(`User has left from the room ${roomId}`);
-                    socket.to(roomId).emit('userLeft', {id: connectedUserId});
+            if(data && data.roomId) {
+                getConnectedUser({roomId:data.roomId, userId: socket.id}, (status, values) => {
+                    const connectedUser = JSON.parse(JSON.stringify(values));
+                    if (connectedUser.length > 0) {
+                        const connectedUserId = connectedUser[0]['id'];
+                        console.log(`User has left from the room ${data.roomId}`);
+                        socket.to(data.roomId).emit('userLeft', {id: connectedUserId});
 
-                    updateUserStatus({userId: socket.id}, (status, values) => {
-                        console.log(`Client ${socket.id} status has been updated`);
-                    });
-
-                    updateUserStatus({userId: connectedUserId}, (status, values) => {
-                        console.log(`Client ${connectedUserId} status has been updated`);
-                    });
-
-
-                    io.of('/').in(roomId).clients((error, socketIds) => {
-                        if (error) throw error;
-                        socketIds.forEach(socketId => {
-                            const currentSocket = io.sockets.sockets[socketId];
-                            currentSocket.leave(roomId);
+                        updateUserStatus({userId: socket.id}, (status, values) => {
+                            console.log(`Client ${socket.id} status has been updated`);
                         });
-                        console.log(`Client - ${socketIds} removed from the room ${roomId}`);
-                    });
 
-                } else {
-                    console.log(`B - Client - ${socket.id} removed from the room ${roomId}`);
-                    updateUserStatus({userId: socket.id}, (status, values) => {
-                        console.log(`Client ${socket.id} status has been updated`);
-                        socket.leave(roomId);
-                    });
+                        updateUserStatus({userId: connectedUserId}, (status, values) => {
+                            console.log(`Client ${connectedUserId} status has been updated`);
+                        });
 
-                }
-            })
+
+                        io.of('/').in(data.roomId).clients((error, socketIds) => {
+                            if (error) throw error;
+                            socketIds.forEach(socketId => {
+                                const currentSocket = io.sockets.sockets[socketId];
+                                currentSocket.leave(data.roomId);
+                            });
+                            console.log(`Client - ${socketIds} removed from the room ${data.roomId}`);
+                        });
+
+                    } else {
+                        console.log(`B - Client - ${socket.id} removed from the room ${data.roomId}`);
+                        updateUserStatus({userId: socket.id}, (status, values) => {
+                            console.log(`Client ${socket.id} status has been updated`);
+                            socket.leave(data.roomId);
+                        });
+
+                    }
+                })
+
+            }
+
         });
 
         socket.on('disconnect', function (data) {
