@@ -48,7 +48,7 @@ exports.getAvailableUsers = function(data,callback) {
         }else {
             sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false`;
         }
-       '
+      
         connection.query(sql, [], function(err, results) {
 
             if(err) {
