@@ -876,7 +876,7 @@ progress[value]::-moz-progress-bar {
 	display: -webkit-box;display: -ms-flexbox;display: flex;overflow: hidden;
 }
 .drawer-manager {
-	z-index: 9;pointer-events: none;
+	z-index: 9;
 }
 #refreshPage{pointer-events: visible !important;}
 article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {

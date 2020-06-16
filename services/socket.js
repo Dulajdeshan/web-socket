@@ -33,7 +33,7 @@ module.exports = io => {
 
         socket.on('connectWithUser', function (data) {
             const {roomId,gender} = data;
-            getAvailableUsers({socketId: socket.id, gender: null}, (status, values) => {
+            getAvailableUsers({socketId: socket.id, gender: gender}, (status, values) => {
                 const availableUsers = JSON.parse(JSON.stringify(values));
                 if (availableUsers.length > 0) {
                     const engagedUserId = availableUsers[0]['id'];

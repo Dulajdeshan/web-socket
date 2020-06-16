@@ -86,6 +86,10 @@
                             <div class="intro-text-container" style="opacity: 1; transform: translateY(0px);">
                                 <h1 class="intro-title">Welcome to Omegle Chat</h1>
                                 <div class="intro-text">Select your gender to start chat</div>
+                            
+                                <div>
+                                    <button id="connect" class="btn btn-info" style="margin-bottom: 50px; margin-top: 10px;" type="button">Connect</button>
+                                </div>
 
                             
                             </div>
@@ -163,7 +167,7 @@
                         </div>
                         <div class="contact-drawer">
                             <ul class="chatonline drawer-body contact-list" id="display" data-list-scroll-container="true" style="display: block;">
-                                <li class="person chatboxhead active" id="chatbox1_Deven" data-chat="person_1" href="javascript:void(0)" onclick="javascript:chatWith('Deven','1','deven.jpg','Online')">
+                                <li class="person chatboxhead active" id="chatbox1_Deven" data-chat="person_1" href="javascript:void(0)" >
                                     <a href="javascript:void(0)">
                                         <span class="userimage profile-picture min-profile-picture"><img src="storage/user_image/Deven.jpg" alt="Deven" class="avatar-image is-loaded bg-theme" width="100%"></span>
                                         <span>
@@ -174,28 +178,7 @@
                                         </span>
                                     </a>
                                 </li>
-                                <li class="person chatboxhead" id="chatbox1_John" data-chat="person_2" href="javascript:void(0)" onclick="javascript:chatWith('John','2','avatar_default.png','last seen 23 days ago')">
-                                    <a href="javascript:void(0)">
-                                        <span class="userimage profile-picture min-profile-picture"><img src="storage/user_image/avatar_default.png" alt="John" class="avatar-image is-loaded bg-theme" width="100%"></span>
-                                        <span>
-                                            <span class="bname personName">John Cena</span>
-                                            <span class="personStatus"><span class="time Offline"><i class="fa fa-circle" aria-hidden="true"></i></span></span>
-                                            <span class="count"></span><br>
-                                            <small class="preview"><span class="Offline">last seen 23 days ago</span></small>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li class="person chatboxhead active" id="chatbox1_Kristina" data-chat="person_3" href="javascript:void(0)" onclick="javascript:chatWith('Kristina','3','Kristina.jpg','Offline')">
-                                    <a href="javascript:void(0)">
-                                        <span class="userimage profile-picture min-profile-picture"><img src="storage/user_image/Kristina.jpg" alt="Deven" class="avatar-image is-loaded bg-theme" width="100%"></span>
-                                        <span>
-                                            <span class="bname personName">Kristina</span>
-                                            <span class="personStatus"><span class="time Offline"><i class="fa fa-circle" aria-hidden="true"></i></span></span>
-                                            <span class="count"></span><br>
-                                            <small class="preview"><span class="Offline">Offline</span></small>
-                                        </span>
-                                    </a>
-                                </li>
+                            
                             </ul>
                         </div>
                     </div>
@@ -1852,9 +1835,7 @@
         </div>
     </div>
 
-    <button id="connect" style="margin-bottom: 50px;" type="button">Connect</button>
 
-    <button class="btn-connect">Connect Two</button>
 
 
 </div>
@@ -1951,20 +1932,19 @@
             socket.emit('connectWithUser', {roomId,gender});
         });
 
-        $(".btn-connect").on('click',function (e) {
-            alert("CLICKED");
-            console.log('Clicked');
-            e.preventDefault();
-        
-            const roomId = new Date().getTime().toString();
-            const gender = "Male";
-            socket.emit('connectWithUser', {roomId,gender});
-        });
-
-        socket.on('joined_room',function (data) {
+        socket.on('joinedRoom',function (data) {
             console.log(data);
             connectedRoom = data.id;
+            if(data.type == 'accUser') {
+                chatWith('Deven','1','deven.jpg','Online');
+            }
         });
+
+        socket.on('userConnected', function(data) {
+           chatWith('Deven','1','deven.jpg','Online');
+        })
+
+
 
         $("#send").on('click',function (e) {
             e.preventDefault();
@@ -1977,6 +1957,7 @@
         });
 
     });
+
 </script>
 
 </body>
