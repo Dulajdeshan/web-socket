@@ -44,11 +44,11 @@ exports.getAvailableUsers = function(data,callback) {
         const {socketId,gender} = data;
         let sql = "";
         if(gender)  {
-            sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false AND gender = ${gender}`;
+            sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false AND gender = '${gender}'`;
         }else {
             sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false`;
         }
-       
+       '
         connection.query(sql, [], function(err, results) {
 
             if(err) {
