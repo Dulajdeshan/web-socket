@@ -67,9 +67,10 @@
 -->
 
 
-<button id="connect" class="btn btn-default" style="margin-bottom: 50px;" >Connect</button>
 
 <div id="wchat">
+    <button id="connect" class="btn btn-default" style="margin-bottom: 50px;" >Connect</button>
+
     <div class="wchat-wrapper wchat-wrapper-web wchat-wrapper-main">
         <div tabindex="-1" class="wchat two">
             <div class="drawer-manager">
@@ -1935,8 +1936,10 @@
 
 
         $("#connect").on('click',function (e) {
+            alert("CLICKED");
             console.log('Clicked');
             e.preventDefault();
+        
             const roomId = new Date().getTime().toString();
             const gender = "Male";
             socket.emit('connectWithUser', {roomId,gender});
