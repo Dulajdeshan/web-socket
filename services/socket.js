@@ -10,13 +10,30 @@ module.exports = io => {
         console.log('User connected');
 
 
-        addUser({socketId: socket.id}, (data, result) => {
-            console.log(`User added - ${socket.id}`);
-        });
+        socket.emit('getUser',{userId: socket.id});
+
+        
+        socket.on('addUser', function(data) {
+            const {userId,gender} = data;
+            checkUserExists({userId},(status,values)=> {
+                const userExists = JSON.parse(JSON.stringify(values));
+                if(!(userExists.length > 0)){
+                    addUser({socketId:userId,gender},(sql,values,cb) => {
+                        console.log(`User added with userId: ${userId} & gender: ${gender} `)
+                    } )
+                }
+            });
+        
+        })
+    
+
+        var total=io.engine.clientsCount;
+        socket.emit('setCount',total);
 
 
-        socket.on('connectWithUser', function (roomId) {
-            getAvailableUsers({socketId: socket.id}, (status, values) => {
+        socket.on('connectWithUser', function (data) {
+            const {roomId,gender} = data;
+            getAvailableUsers({socketId: socket.id, gender: null}, (status, values) => {
                 const availableUsers = JSON.parse(JSON.stringify(values));
                 if (availableUsers.length > 0) {
                     const engagedUserId = availableUsers[0]['id'];
@@ -131,10 +148,16 @@ module.exports = io => {
                     }
                 });
             }
-
         });
 
+        socket.on('getCount', function(data) {
+            var _total=io.engine.clientsCount;
+            socket.emit('setCount',_total);
+        })
+
         socket.on('disconnect', function (data) {
+
+            socket.emit('setCount',total);
 
             getRoomId({userId:socket.id}, (sql,values,db)=> {
                 const connectedUsers = JSON.parse(JSON.stringify(values));

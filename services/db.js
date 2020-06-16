@@ -2,11 +2,10 @@ const mysql = require('mysql');
 
 
 const pool = mysql.createPool({
-    connectionLimit:10,
     host     : 'remotemysql.com',
-    user     : 'aTCTaV9kah',
-    password : 'P47WPpVxiu',
-    database : 'aTCTaV9kah'
+    user     : '2jIzJTTTnw',
+    password : 'TQR0VkVmdg',
+    database : '2jIzJTTTnw'
 });
 
 exports.database = pool;
@@ -19,8 +18,8 @@ exports.addUser = function(data,callback) {
             callback(true);
             return;
         }
-        const {socketId} = data;
-        const sql = `INSERT INTO Users(id,isEngaged) VALUES('${socketId}',false)`;
+        const {socketId, gender} = data;
+        const sql = `INSERT INTO Users(id,isEngaged,gender) VALUES('${socketId}',false, '${gender}')`;
         connection.query(sql, [], function(err, results) {
 
             if(err) {
@@ -42,8 +41,14 @@ exports.getAvailableUsers = function(data,callback) {
             callback(true);
             return;
         }
-        const {socketId} = data;
-        const sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false`;
+        const {socketId,gender} = data;
+        let sql = "";
+        if(gender)  {
+            sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false AND gender = ${gender}`;
+        }else {
+            sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false`;
+        }
+       
         connection.query(sql, [], function(err, results) {
 
             if(err) {
