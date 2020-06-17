@@ -126,6 +126,7 @@ module.exports = io => {
             const userId = data['userId'];
             const time = data['time'];
             socket.to(roomId).emit(`newMessage`, {message, time: time,type, userId, roomId});
+            console.log(`Message Sent to the Room - ${roomId} message: ${message}`);
         });
 
 
