@@ -57,6 +57,29 @@ exports.updateUser = function(data,callback) {
     });
 };
 
+exports.updateGender = function(data,callback) {
+    pool.getConnection(function(err, connection) {
+        if(err) {
+            console.log(err);
+            callback(true);
+            return;
+        }
+        const {gender,userId} = data;
+        const sql = `UPDATE Users SET gender = '${gender}' WHERE userId = '${userId}'`;
+        connection.query(sql, [], function(err, results) {
+
+            if(err) {
+                console.log(err);
+                callback(true);
+                return;
+            }
+            callback(false, results);
+            connection.destroy(); // always put connection back in pool after last query
+        });
+
+    });
+};
+
 exports.getAvailableUsers = function(data,callback) {
     pool.getConnection(function(err, connection) {
         if(err) {

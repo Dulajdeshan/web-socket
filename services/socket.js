@@ -1,4 +1,4 @@
-const {checkUserExists,getConnectedUser, deleteUser, addUser, updateUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
+const {checkUserExists,getConnectedUser, deleteUser, addUser, updateUser, updateGender,getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
 
 
 module.exports = io => {
@@ -75,11 +75,23 @@ module.exports = io => {
         })
     
 
+
+        socket.on('updateGender',function(data) {
+            const {userId,gender} = data;
+            checkUserExists({userId},(status,values)=> {
+                const userExists = JSON.parse(JSON.stringify(values));
+                if((userExists.length > 0)){
+                    updateGender({gender,userId},(sql,values,cb) => {
+                        console.log(`Gender updated of the user: ${userId} with: ${gender}`);
+                    });
+                    
+                }
+            });
+        })
        
 
 
         socket.on('connectWithUser', function (data) {
-            console.log(socket.id);
             const {roomId,userId,gender} = data;
             getAvailableUsers({socketId: socket.id,userId, gender}, (status, values) => {
                 const availableUsers = JSON.parse(JSON.stringify(values));
