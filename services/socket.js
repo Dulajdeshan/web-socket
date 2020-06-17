@@ -49,15 +49,22 @@ module.exports = io => {
                     })
                     socket.join(roomId);
 
-                    io.of('/').in(roomId).clients((error, socketIds) => {
-                        if (error) throw error;
-                        socketIds.forEach(socketId => {
-                            const currentSocket = io.sockets.sockets[socketId];
-                            console.log(`BOOLEAN: ${currentSocket.id === oldSocketId}`);
-                            console.log(`Client - ${currentSocket} removed from the room ${roomId}`);
-                        });
+                    if(oldSocketId !== null && oldSocketId !== undefined) {
+                        io.of('/').in(roomId).clients((error, socketIds) => {
+                            if (error) throw error;
+                            socketIds.forEach(socketId => {
+                                const currentSocket = io.sockets.sockets[socketId];
+                                if(currentSocket.id === oldSocketId) {
+                                    currentSocket.leave(roomId)
+                                    console.log(`Client Old SOcket - ${oldSocketId} has been removed from the room ${roomId}`);
+                                }
                         
-                    });
+                               
+                            });
+                            
+                        });
+                    }
+                    
                 }
             });
 
