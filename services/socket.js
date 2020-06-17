@@ -9,6 +9,9 @@ module.exports = io => {
     io.on('connection', (socket) => {
         console.log('User connected');
 
+        var connectedUsers= io.engine.clientsCount;
+        socket.broadcast.emit('getCount',connectedUsers);
+
 
         socket.emit('getUser',{userId: socket.id});
 
@@ -72,8 +75,7 @@ module.exports = io => {
         })
     
 
-        var total=io.engine.clientsCount;
-        socket.emit('setCount',total);
+       
 
 
         socket.on('connectWithUser', function (data) {
@@ -211,14 +213,12 @@ module.exports = io => {
             }
         });
 
-        socket.on('getCount', function(data) {
-            var _total=io.engine.clientsCount;
-            socket.emit('setCount',_total);
-        })
+    
 
         socket.on('disconnect', function (data) {
 
-            socket.emit('setCount',total);
+            connectedUsers= io.engine.clientsCount;
+            socket.broadcast.emit('getCount',connectedUsers);
 
             getRoomId({socketId:socket.id}, (sql,values,db)=> {
                 const connectedUsers = JSON.parse(JSON.stringify(values));
