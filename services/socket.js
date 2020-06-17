@@ -44,7 +44,7 @@ module.exports = io => {
             checkUserExists({userId},(status,values)=> {
                 const userExists = JSON.parse(JSON.stringify(values));
                 if((userExists.length > 0)){
-                    updateUser({socketId,userId,gender},(sql,values,cb) => {
+                    updateUser({socketId,userId},(sql,values,cb) => {
                         console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
                     })
                     socket.join(roomId);
