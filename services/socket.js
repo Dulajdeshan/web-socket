@@ -127,6 +127,14 @@ module.exports = io => {
             const time = data['time'];
             socket.to(roomId).emit(`newMessage`, {message, time: time,type, userId, roomId});
             console.log(`Message Sent to the Room - ${roomId} message: ${message}`);
+            io.of('/').in(roomId).clients((error, socketIds) => {
+                if (error) throw error;
+                socketIds.forEach(socketId => {
+                    console.log(`Message Sent to the - ${socketIds}in ${roomId}`);
+                });
+               
+            });
+
         });
 
 
