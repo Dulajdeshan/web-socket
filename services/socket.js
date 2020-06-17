@@ -53,7 +53,7 @@ module.exports = io => {
                         if (error) throw error;
                         socketIds.forEach(socketId => {
                             const currentSocket = io.sockets.sockets[socketId];
-                            console.log(`BOOLEAN: ${currentSocket === oldSocketId}`);
+                            console.log(`BOOLEAN: ${currentSocket.id === oldSocketId}`);
                             console.log(`Client - ${currentSocket} removed from the room ${roomId}`);
                         });
                         
