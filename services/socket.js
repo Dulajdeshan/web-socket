@@ -39,16 +39,19 @@ module.exports = io => {
 
         socket.on('updateUser', function(data) {
 
-            const {socketId,userId,gender} = data;
+            const {socketId,userId,roomId} = data;
 
             checkUserExists({userId},(status,values)=> {
                 const userExists = JSON.parse(JSON.stringify(values));
                 if((userExists.length > 0)){
                     updateUser({socketId,userId,gender},(sql,values,cb) => {
-                        console.log(`User updated with socketId: ${socketId} & userId: ${userId} & gender: ${gender} `)
-                    } )
+                        console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
+                    })
+                    socket.join(roomId);
                 }
             });
+
+
         
         })
     
