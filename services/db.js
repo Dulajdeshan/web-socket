@@ -18,8 +18,31 @@ exports.addUser = function(data,callback) {
             callback(true);
             return;
         }
-        const {socketId, gender} = data;
-        const sql = `INSERT INTO Users(id,isEngaged,gender) VALUES('${socketId}',false, '${gender}')`;
+        const {socketId, userId, gender} = data;
+        const sql = `INSERT INTO Users(id,userId,isEngaged,gender) VALUES('${socketId}', '${userId}',false, '${gender}')`;
+        connection.query(sql, [], function(err, results) {
+
+            if(err) {
+                console.log(err);
+                callback(true);
+                return;
+            }
+            callback(false, results);
+            connection.destroy(); // always put connection back in pool after last query
+        });
+
+    });
+};
+
+exports.updateUser = function(data,callback) {
+    pool.getConnection(function(err, connection) {
+        if(err) {
+            console.log(err);
+            callback(true);
+            return;
+        }
+        const {socketId, userId, gender} = data;
+        const sql = `UPDATE Users SET id = '${socketId}' WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
 
             if(err) {
@@ -41,12 +64,12 @@ exports.getAvailableUsers = function(data,callback) {
             callback(true);
             return;
         }
-        const {socketId,gender} = data;
+        const {userId,gender} = data;
         let sql = "";
         if(gender)  {
-            sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false AND gender = '${gender}'`;
+            sql = `SELECT * FROM Users WHERE userId != '${userId}' AND roomId IS NOT NULL AND isEngaged = false AND gender = '${gender}'`;
         }else {
-            sql = `SELECT * FROM Users WHERE id != '${socketId}' AND roomId IS NOT NULL AND isEngaged = false`;
+            sql = `SELECT * FROM Users WHERE userId != '${userId}' AND roomId IS NOT NULL AND isEngaged = false`;
         }
       
         connection.query(sql, [], function(err, results) {
@@ -70,7 +93,7 @@ exports.checkUserExists = function(data,callback) {
           return;
       }
       const {userId} = data;
-      const sql = `SELECT * FROM Users WHERE id = '${userId}'`;
+      const sql = `SELECT * FROM Users WHERE userId = '${userId}'`;
       connection.query(sql,[],function (err,results) {
           if(err) {
               callback(true);
@@ -90,8 +113,8 @@ exports.updateCurrentUser = function(data,callback) {
             callback(true);
             return;
         }
-        const {socketId,engagedRoomId} = data;
-        const sql = `UPDATE Users SET roomId = '${engagedRoomId}', isEngaged = true WHERE id = '${socketId}'`;
+        const {userId,engagedRoomId} = data;
+        const sql = `UPDATE Users SET roomId = '${engagedRoomId}', isEngaged = true WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
 
             if(err) {
@@ -114,7 +137,7 @@ exports.setRoomId = function(data,callback) {
             return;
         }
         const {roomId,userId} = data;
-        const sql = `UPDATE Users SET roomId = '${roomId}' WHERE id = '${userId}'`;
+        const sql = `UPDATE Users SET roomId = '${roomId}' WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
 
             if(err) {
@@ -136,7 +159,7 @@ exports.setEngaged = function(data,callback) {
             return;
         }
         const {engagedUserId} = data;
-        const sql = `UPDATE Users SET isEngaged = true WHERE id = '${engagedUserId}'`;
+        const sql = `UPDATE Users SET isEngaged = true WHERE userId = '${engagedUserId}'`;
         connection.query(sql, [], function(err, results) {
 
             if(err) {
@@ -158,7 +181,7 @@ exports.deleteUser = function(data,callback) {
             return;
         }
         const  {userId} = data;
-        const sql = `DELETE FROM Users WHERE id = '${userId}'`;
+        const sql = `DELETE FROM Users WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
             if(err) {
                 console.log(err);
@@ -180,7 +203,7 @@ exports.getConnectedUser = function(data,callback) {
             return;
         }
         const  {roomId,userId} = data;
-        const sql = `SELECT * FROM Users WHERE roomId = '${roomId}' AND id != '${userId}'`;
+        const sql = `SELECT * FROM Users WHERE roomId = '${roomId}' AND userId != '${userId}'`;
         connection.query(sql, [], function(err, results) {
             if(err) {
                 console.log(err);
@@ -204,7 +227,7 @@ exports.updateUserStatus = function(data,callback) {
             return;
         }
         const  {userId} = data;
-        const sql = `UPDATE Users SET roomId = NULL, isEngaged = false WHERE id = '${userId}'`;
+        const sql = `UPDATE Users SET roomId = NULL, isEngaged = false WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
             if(err) {
                 console.log(err);
@@ -226,8 +249,13 @@ exports.getRoomId = function(data,callback) {
             callback(true);
             return;
         }
-        const  {userId} = data;
-        const sql = `SELECT * FROM Users WHERE id = '${userId}'`;
+        let sql = "";
+        if(data.userId) {
+            sql = `SELECT * FROM Users WHERE userId = '${data.userId}'`;
+        }else {
+            sql = `SELECT * FROM Users WHERE id = '${data.socketId}'`;
+        }
+     
         connection.query(sql, [], function(err, results) {
             if(err) {
                 console.log(err);
@@ -251,7 +279,7 @@ exports.updateUserStatus = function(data,callback) {
             return;
         }
         const  {userId} = data;
-        const sql = `UPDATE Users SET roomId = NULL, isEngaged = false WHERE id = '${userId}'`;
+        const sql = `UPDATE Users SET roomId = NULL, isEngaged = false WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
             if(err) {
                 console.log(err);

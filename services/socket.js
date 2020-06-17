@@ -1,4 +1,4 @@
-const {checkUserExists,getConnectedUser, deleteUser, addUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
+const {checkUserExists,getConnectedUser, deleteUser, addUser, updateUser, getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
 
 
 module.exports = io => {
@@ -14,12 +14,34 @@ module.exports = io => {
 
         
         socket.on('addUser', function(data) {
-            const {userId,gender} = data;
+
+            const {socketId,userId,gender} = data;
+
+            checkUserExists({userId},(status,values)=> {
+
+                const userExists = JSON.parse(JSON.stringify(values));
+
+                if(!(userExists.length > 0)){
+
+                    addUser({socketId,userId,gender},(sql,values,cb) => {
+
+                        console.log(`User added with socketId: ${socketId} & fbId: ${userId} & gender: ${gender} `)
+
+                    } )
+                }
+            });
+        
+        })
+
+        socket.on('updateUser', function(data) {
+
+            const {socketId,userId,gender} = data;
+
             checkUserExists({userId},(status,values)=> {
                 const userExists = JSON.parse(JSON.stringify(values));
-                if(!(userExists.length > 0)){
-                    addUser({socketId:userId,gender},(sql,values,cb) => {
-                        console.log(`User added with userId: ${userId} & gender: ${gender} `)
+                if((userExists.length > 0)){
+                    updateUser({socketId,userId,gender},(sql,values,cb) => {
+                        console.log(`User updated with socketId: ${socketId} & userId: ${userId} & gender: ${gender} `)
                     } )
                 }
             });
@@ -32,13 +54,14 @@ module.exports = io => {
 
 
         socket.on('connectWithUser', function (data) {
-            const {roomId,gender} = data;
-            getAvailableUsers({socketId: socket.id, gender: gender}, (status, values) => {
+            const {roomId,userId,gender} = data;
+            getAvailableUsers({socketId: socket.id,userId, gender}, (status, values) => {
                 const availableUsers = JSON.parse(JSON.stringify(values));
                 if (availableUsers.length > 0) {
-                    const engagedUserId = availableUsers[0]['id'];
+                    const engagedUserId = availableUsers[0]['userId'];
+                    const engagedUserSocketId = availableUsers[0]['id'];
                     const engagedRoomId = availableUsers[0]['roomId'];
-                    updateCurrentUser({engagedRoomId, socketId: socket.id}, (status, values) => {
+                    updateCurrentUser({engagedRoomId, userId}, (status, values) => {
                         console.log(`Client - ${socket.id} has been updated`);
                     });
                     setEngaged({engagedUserId}, (status, values) => {
@@ -46,26 +69,28 @@ module.exports = io => {
                     });
                     socket.join(engagedRoomId);
                     socket.emit('joinedRoom', {
-                        id: engagedRoomId,
-                        userId: socket.id,
+                        roomId: engagedRoomId,
+                        socketId: socket.id,
+                        userId: engagedUserId,
                         reqUser: engagedUserId,
                         accUser: socket.id,
                         type: 'accUser'
                     });
                     socket.to(engagedRoomId).emit('userConnected', {
-                        id: engagedRoomId,
-                        userId: engagedUserId,
+                        roomId: engagedRoomId,
+                        socketId: engagedUserSocketId,
                         reqUser: engagedUserId,
-                        accUser: socket.id,
+                        accUser: userId,
                         type: 'reqUser'
                     })
                 } else {
-                    setRoomId({roomId, userId: socket.id}, (sql, values, cb) => {
+                    setRoomId({roomId, userId}, (sql, values, cb) => {
                         socket.join(roomId);
                         socket.emit('joinedRoom', {
                             id: roomId,
-                            userId: socket.id,
-                            reqUser: socket.id,
+                            socketId: socket.id,
+                            userId: userId,
+                            reqUser: userId,
                             accUser: "None",
                             type: 'reqUser'
                         })
@@ -99,15 +124,17 @@ module.exports = io => {
         socket.on('leaveRoom', function (data) {
 
             if(data && data.roomId) {
-                getConnectedUser({roomId:data.roomId, userId: socket.id}, (status, values) => {
+                const {userId,roomId} = data;
+                getConnectedUser({roomId,userId}, (status, values) => {
                     const connectedUser = JSON.parse(JSON.stringify(values));
                     if (connectedUser.length > 0) {
-                        const connectedUserId = connectedUser[0]['id'];
+                        const connectedUserId = connectedUser[0]['userId'];
+                        const connectedUserSocketId = connectedUser[0]['id'];
                         console.log(`User has left from the room ${data.roomId}`);
-                        socket.to(data.roomId).emit('userLeft', {id: connectedUserId});
+                        socket.to(data.roomId).emit('userLeft', {userId: connectedUserId});
 
-                        updateUserStatus({userId: socket.id}, (status, values) => {
-                            console.log(`Client ${socket.id} status has been updated`);
+                        updateUserStatus({userId}, (status, values) => {
+                            console.log(`Client ${userId} status has been updated`);
                         });
 
                         updateUserStatus({userId: connectedUserId}, (status, values) => {
@@ -119,28 +146,28 @@ module.exports = io => {
                             if (error) throw error;
                             socketIds.forEach(socketId => {
                                 const currentSocket = io.sockets.sockets[socketId];
-                                currentSocket.leave(data.roomId);
+                                currentSocket.leave(roomId);
                             });
-                            console.log(`Client - ${socketIds} removed from the room ${data.roomId}`);
+                            console.log(`Client - ${socketIds} removed from the room ${roomId}`);
                         });
 
                     } else {
-                        console.log(`B - Client - ${socket.id} removed from the room ${data.roomId}`);
-                        updateUserStatus({userId: socket.id}, (status, values) => {
-                            console.log(`Client ${socket.id} status has been updated`);
-                            socket.leave(data.roomId);
+                        console.log(`B - Client - ${userId} removed from the room ${data.roomId}`);
+                        updateUserStatus({userId}, (status, values) => {
+                            console.log(`Client ${userId} status has been updated`);
+                            socket.leave(roomId);
                         });
 
                     }
                 })
 
             }else {
-                getRoomId({userId:socket.id}, (sql,values,db)=> {
+                getRoomId({socketId:socket.id}, (sql,values,db)=> {
                     const connectedUsers = JSON.parse(JSON.stringify(values));
                     if(connectedUsers.length > 0) {
                         const roomId = connectedUsers[0]['roomId'];
-                        updateUserStatus({userId: socket.id}, (status, values) => {
-                            console.log(`Client ${socket.id} status has been updated`);
+                        updateUserStatus({userId}, (status, values) => {
+                            console.log(`Client ${userId} status has been updated`);
                             socket.leave(roomId);
                         });
 
@@ -159,25 +186,28 @@ module.exports = io => {
 
             socket.emit('setCount',total);
 
-            getRoomId({userId:socket.id}, (sql,values,db)=> {
+            getRoomId({socketId:socket.id}, (sql,values,db)=> {
                 const connectedUsers = JSON.parse(JSON.stringify(values));
                 if(connectedUsers.length > 0) {
                     const disconnectedUser = connectedUsers[0];
                     const roomId = disconnectedUser['roomId'];
+                    const userId = disconnectedUser['userId'];
 
                     if(roomId) {
-                        socket.to(roomId).emit('userLeft', {id: disconnectedUser['id']});
+                        socket.to(roomId).emit('userLeft', {userId: disconnectedUser['userId']});
 
                         io.of('/').in(roomId).clients((error, socketIds) => {
                             if (error) throw error;
                             socketIds.forEach(socketId => {
                                 const currentSocket = io.sockets.sockets[socketId];
                                 if(socketId !== socket.id) {
-                                    checkUserExists({userId:socketId},(status,values)=> {
+                                    checkUserExists({socketId:socketId},(status,values)=> {
                                         const userExists = JSON.parse(JSON.stringify(values));
                                         if(userExists.length > 0){
-                                            updateUserStatus({userId: socketId}, (status, values) => {
-                                                console.log(`Client ${socket.id} status has been updated`);
+                                            const userExistsUserId = userExists[0]['userId'];
+                                        
+                                            updateUserStatus({userId: userExistsUserId}, (status, values) => {
+                                                console.log(`Client ${userExistsUserId} status has been updated`);
                                             });
                                         }
                                     });
@@ -190,8 +220,8 @@ module.exports = io => {
                     }
 
 
-                    deleteUser({userId: socket.id}, (sql, values, db) => {
-                        console.log(`Client ${socket.id} has been removed from the database`);
+                    deleteUser({userId}, (sql, values, db) => {
+                        console.log(`Client ${userId} has been removed from the database`);
                     })
 
                 }

@@ -1902,11 +1902,13 @@
 <script>
     $(function () {
         let connectedRoom = null;
+        let userId = null;
         const socket = io();
 
         socket.on('getUser', function(data) {
             console.log(data);
             console.log(socket.id);
+            userId = socket.id;
 
             socket.emit('addUser', {userId: socket.id,gender: 'Female'})
         })
