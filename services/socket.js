@@ -171,7 +171,7 @@ module.exports = io => {
                     const connectedUsers = JSON.parse(JSON.stringify(values));
                     if(connectedUsers.length > 0) {
                         const roomId = connectedUsers[0]['roomId'];
-                        updateUserStatus({userId}, (status, values) => {
+                        updateUserStatus({userId:data.userId}, (status, values) => {
                             console.log(`Client ${userId} status has been updated`);
                             socket.leave(roomId);
                         });
