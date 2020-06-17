@@ -172,7 +172,7 @@ module.exports = io => {
                     if(connectedUsers.length > 0) {
                         const roomId = connectedUsers[0]['roomId'];
                         updateUserStatus({userId:data.userId}, (status, values) => {
-                            console.log(`Client ${userId} status has been updated`);
+                            console.log(`Client ${data.userId} status has been updated`);
                             socket.leave(roomId);
                         });
 
