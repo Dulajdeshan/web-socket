@@ -56,9 +56,8 @@ module.exports = io => {
                                 const currentSocket = io.sockets.sockets[socketId];
                                 if(currentSocket.id === oldSocketId) {
                                     currentSocket.leave(roomId)
-                                    console.log(`Client Old SOcket - ${oldSocketId} has been removed from the room ${roomId}`);
+                                    console.log(`Client Old Socket - ${oldSocketId} has been removed from the room ${roomId}`);
                                 }
-                        
                                
                             });
                             
