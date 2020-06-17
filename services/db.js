@@ -41,7 +41,7 @@ exports.updateUser = function(data,callback) {
             callback(true);
             return;
         }
-        const {socketId, userId, gender} = data;
+        const {socketId, userId} = data;
         const sql = `UPDATE Users SET id = '${socketId}' WHERE userId = '${userId}'`;
         connection.query(sql, [], function(err, results) {
 

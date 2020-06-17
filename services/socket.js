@@ -28,6 +28,10 @@ module.exports = io => {
                         console.log(`User added with socketId: ${socketId} & fbId: ${userId} & gender: ${gender} `)
 
                     } )
+                }else {
+                    updateUser({socketId,userId},(sql,values,cb) => {
+                        console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
+                    })
                 }
             });
         
@@ -54,6 +58,7 @@ module.exports = io => {
 
 
         socket.on('connectWithUser', function (data) {
+            console.log(socket.id);
             const {roomId,userId,gender} = data;
             getAvailableUsers({socketId: socket.id,userId, gender}, (status, values) => {
                 const availableUsers = JSON.parse(JSON.stringify(values));
