@@ -39,7 +39,7 @@ module.exports = io => {
 
         socket.on('updateUser', function(data) {
 
-            const {socketId,userId,roomId} = data;
+            const {socketId,userId,roomId, oldSocketId} = data;
 
             checkUserExists({userId},(status,values)=> {
                 const userExists = JSON.parse(JSON.stringify(values));
@@ -48,6 +48,16 @@ module.exports = io => {
                         console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
                     })
                     socket.join(roomId);
+
+                    io.of('/').in(roomId).clients((error, socketIds) => {
+                        if (error) throw error;
+                        socketIds.forEach(socketId => {
+                            const currentSocket = io.sockets.sockets[socketId];
+                            console.log(`BOOLEAN: ${currentSocket === oldSocketId}`);
+                            console.log(`Client - ${currentSocket} removed from the room ${roomId}`);
+                        });
+                        
+                    });
                 }
             });
 
