@@ -1,4 +1,4 @@
-const {checkUserExists,getConnectedUser, deleteUser, addUser, updateUser, updateGender,getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
+const {addMongoUser,updateMongoUser,checkUserExists,getConnectedUser, deleteUser, addUser, updateUser, updateGender,getAvailableUsers, updateCurrentUser, setEngaged, setRoomId, updateUserStatus,getRoomId} = require('./db');
 
 
 module.exports = io => {
@@ -19,24 +19,27 @@ module.exports = io => {
         socket.on('addUser', function(data) {
 
             const {socketId,userId,gender} = data;
+            addMongoUser(data);
 
-            checkUserExists({userId},(status,values)=> {
+            // checkUserExists({userId},(status,values)=> {
 
-                const userExists = JSON.parse(JSON.stringify(values));
+            //     const userExists = JSON.parse(JSON.stringify(values));
 
-                if(!(userExists.length > 0)){
+            //     if(!(userExists.length > 0)){
 
-                    addUser({socketId,userId,gender},(sql,values,cb) => {
+            
 
-                        console.log(`User added with socketId: ${socketId} & fbId: ${userId} & gender: ${gender} `)
+            //         addUser({socketId,userId,gender},(sql,values,cb) => {
 
-                    } )
-                }else {
-                    updateUser({socketId,userId},(sql,values,cb) => {
-                        console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
-                    })
-                }
-            });
+            //             console.log(`User added with socketId: ${socketId} & fbId: ${userId} & gender: ${gender} `)
+
+            //         } )
+            //     }else {
+            //         updateUser({socketId,userId},(sql,values,cb) => {
+            //             console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
+            //         })
+            //     }
+            // });
         
         })
 
@@ -44,31 +47,37 @@ module.exports = io => {
 
             const {socketId,userId,roomId, oldSocketId} = data;
 
-            checkUserExists({userId},(status,values)=> {
-                const userExists = JSON.parse(JSON.stringify(values));
-                if((userExists.length > 0)){
-                    updateUser({socketId,userId},(sql,values,cb) => {
-                        console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
-                    })
-                    socket.join(roomId);
+            const exists = checkUserExists(data);
+            console.log("EXISTS",exists);
 
-                    if(oldSocketId !== null && oldSocketId !== undefined) {
-                        io.of('/').in(roomId).clients((error, socketIds) => {
-                            if (error) throw error;
-                            socketIds.forEach(socketId => {
-                                const currentSocket = io.sockets.sockets[socketId];
-                                if(currentSocket.id === oldSocketId) {
-                                    currentSocket.leave(roomId)
-                                    console.log(`Client Old Socket - ${oldSocketId} has been removed from the room ${roomId}`);
-                                }
+            updateMongoUser(data);
+        
+
+            // checkUserExists({userId},(status,values)=> {
+            //     const userExists = JSON.parse(JSON.stringify(values));
+            //     if((userExists.length > 0)){
+            //         updateUser({socketId,userId},(sql,values,cb) => {
+            //             console.log(`User updated with socketId: ${socketId} & userId: ${userId}`)
+            //         })
+            //         socket.join(roomId);
+
+            //         if(oldSocketId !== null && oldSocketId !== undefined) {
+            //             io.of('/').in(roomId).clients((error, socketIds) => {
+            //                 if (error) throw error;
+            //                 socketIds.forEach(socketId => {
+            //                     const currentSocket = io.sockets.sockets[socketId];
+            //                     if(currentSocket.id === oldSocketId) {
+            //                         currentSocket.leave(roomId)
+            //                         console.log(`Client Old Socket - ${oldSocketId} has been removed from the room ${roomId}`);
+            //                     }
                                
-                            });
+            //                 });
                             
-                        });
-                    }
+            //             });
+            //         }
                     
-                }
-            });
+            //     }
+            // });
 
 
         
@@ -78,65 +87,65 @@ module.exports = io => {
 
         socket.on('updateGender',function(data) {
             const {userId,gender} = data;
-            checkUserExists({userId},(status,values)=> {
-                const userExists = JSON.parse(JSON.stringify(values));
-                if((userExists.length > 0)){
-                    updateGender({gender,userId},(sql,values,cb) => {
-                        console.log(`Gender updated of the user: ${userId} with: ${gender}`);
-                    });
+            // checkUserExists({userId},(status,values)=> {
+            //     const userExists = JSON.parse(JSON.stringify(values));
+            //     if((userExists.length > 0)){
+            //         updateGender({gender,userId},(sql,values,cb) => {
+            //             console.log(`Gender updated of the user: ${userId} with: ${gender}`);
+            //         });
                     
-                }
-            });
+            //     }
+            // });
         })
        
 
 
         socket.on('connectWithUser', function (data) {
             const {roomId,userId,gender} = data;
-            getAvailableUsers({socketId: socket.id,userId, gender}, (status, values) => {
-                const availableUsers = JSON.parse(JSON.stringify(values));
-                if (availableUsers.length > 0) {
-                    const engagedUserId = availableUsers[0]['userId'];
-                    const engagedUserSocketId = availableUsers[0]['id'];
-                    const engagedRoomId = availableUsers[0]['roomId'];
-                    updateCurrentUser({engagedRoomId, userId}, (status, values) => {
-                        console.log(`Client - ${socket.id} has been updated`);
-                    });
-                    setEngaged({engagedUserId}, (status, values) => {
-                        console.log(`Client - ${engagedUserId} has been engaged`);
-                    });
-                    socket.join(engagedRoomId);
-                    socket.emit('joinedRoom', {
-                        roomId: engagedRoomId,
-                        socketId: socket.id,
-                        userId: engagedUserId,
-                        reqUser: engagedUserId,
-                        accUser: socket.id,
-                        type: 'accUser'
-                    });
-                    socket.to(engagedRoomId).emit('userConnected', {
-                        roomId: engagedRoomId,
-                        userId: userId,
-                        socketId: engagedUserSocketId,
-                        reqUser: engagedUserId,
-                        accUser: userId,
-                        type: 'reqUser'
-                    })
-                } else {
-                    setRoomId({roomId, userId}, (sql, values, cb) => {
-                        socket.join(roomId);
-                        socket.emit('joinedRoom', {
-                            id: roomId,
-                            socketId: socket.id,
-                            userId: userId,
-                            reqUser: userId,
-                            accUser: "None",
-                            type: 'reqUser'
-                        })
-                    })
-                }
+            // getAvailableUsers({socketId: socket.id,userId, gender}, (status, values) => {
+            //     const availableUsers = JSON.parse(JSON.stringify(values));
+            //     if (availableUsers.length > 0) {
+            //         const engagedUserId = availableUsers[0]['userId'];
+            //         const engagedUserSocketId = availableUsers[0]['id'];
+            //         const engagedRoomId = availableUsers[0]['roomId'];
+            //         updateCurrentUser({engagedRoomId, userId}, (status, values) => {
+            //             console.log(`Client - ${socket.id} has been updated`);
+            //         });
+            //         setEngaged({engagedUserId}, (status, values) => {
+            //             console.log(`Client - ${engagedUserId} has been engaged`);
+            //         });
+            //         socket.join(engagedRoomId);
+            //         socket.emit('joinedRoom', {
+            //             roomId: engagedRoomId,
+            //             socketId: socket.id,
+            //             userId: engagedUserId,
+            //             reqUser: engagedUserId,
+            //             accUser: socket.id,
+            //             type: 'accUser'
+            //         });
+            //         socket.to(engagedRoomId).emit('userConnected', {
+            //             roomId: engagedRoomId,
+            //             userId: userId,
+            //             socketId: engagedUserSocketId,
+            //             reqUser: engagedUserId,
+            //             accUser: userId,
+            //             type: 'reqUser'
+            //         })
+            //     } else {
+            //         setRoomId({roomId, userId}, (sql, values, cb) => {
+            //             socket.join(roomId);
+            //             socket.emit('joinedRoom', {
+            //                 id: roomId,
+            //                 socketId: socket.id,
+            //                 userId: userId,
+            //                 reqUser: userId,
+            //                 accUser: "None",
+            //                 type: 'reqUser'
+            //             })
+            //         })
+            //     }
 
-            });
+            // });
 
 
         });
@@ -173,55 +182,55 @@ module.exports = io => {
 
             if(data && data.roomId) {
                 const {userId,roomId} = data;
-                getConnectedUser({roomId,userId}, (status, values) => {
-                    const connectedUser = JSON.parse(JSON.stringify(values));
-                    if (connectedUser.length > 0) {
-                        const connectedUserId = connectedUser[0]['userId'];
-                        const connectedUserSocketId = connectedUser[0]['id'];
-                        console.log(`User has left from the room ${data.roomId}`);
-                        socket.to(roomId).emit('userLeft', {userId: connectedUserId});
+                // getConnectedUser({roomId,userId}, (status, values) => {
+                //     const connectedUser = JSON.parse(JSON.stringify(values));
+                //     if (connectedUser.length > 0) {
+                //         const connectedUserId = connectedUser[0]['userId'];
+                //         const connectedUserSocketId = connectedUser[0]['id'];
+                //         console.log(`User has left from the room ${data.roomId}`);
+                //         socket.to(roomId).emit('userLeft', {userId: connectedUserId});
 
-                        updateUserStatus({userId}, (status, values) => {
-                            console.log(`Client ${userId} status has been updated`);
-                        });
+                //         updateUserStatus({userId}, (status, values) => {
+                //             console.log(`Client ${userId} status has been updated`);
+                //         });
 
-                        updateUserStatus({userId: connectedUserId}, (status, values) => {
-                            console.log(`Client ${connectedUserId} status has been updated`);
-                        });
+                //         updateUserStatus({userId: connectedUserId}, (status, values) => {
+                //             console.log(`Client ${connectedUserId} status has been updated`);
+                //         });
 
 
-                        io.of('/').in(data.roomId).clients((error, socketIds) => {
-                            if (error) throw error;
-                            socketIds.forEach(socketId => {
-                                const currentSocket = io.sockets.sockets[socketId];
-                                currentSocket.leave(roomId);
-                            });
-                            console.log(`Client - ${socketIds} removed from the room ${roomId}`);
-                        });
+                //         io.of('/').in(data.roomId).clients((error, socketIds) => {
+                //             if (error) throw error;
+                //             socketIds.forEach(socketId => {
+                //                 const currentSocket = io.sockets.sockets[socketId];
+                //                 currentSocket.leave(roomId);
+                //             });
+                //             console.log(`Client - ${socketIds} removed from the room ${roomId}`);
+                //         });
 
-                    } else {
-                        console.log(`B - Client - ${userId} removed from the room ${data.roomId}`);
-                        updateUserStatus({userId}, (status, values) => {
-                            console.log(`Client ${userId} status has been updated`);
-                            socket.leave(roomId);
-                        });
+                //     } else {
+                //         console.log(`B - Client - ${userId} removed from the room ${data.roomId}`);
+                //         updateUserStatus({userId}, (status, values) => {
+                //             console.log(`Client ${userId} status has been updated`);
+                //             socket.leave(roomId);
+                //         });
 
-                    }
-                })
+                //     }
+                // })
 
             }else {
-                getRoomId({socketId:socket.id}, (sql,values,db)=> {
-                    const connectedUsers = JSON.parse(JSON.stringify(values));
-                    if(connectedUsers.length > 0) {
-                        const roomId = connectedUsers[0]['roomId'];
-                        updateUserStatus({userId:data.userId}, (status, values) => {
-                            console.log(`Client ${data.userId} status has been updated`);
-                            socket.leave(roomId);
-                        });
+                // getRoomId({socketId:socket.id}, (sql,values,db)=> {
+                //     const connectedUsers = JSON.parse(JSON.stringify(values));
+                //     if(connectedUsers.length > 0) {
+                //         const roomId = connectedUsers[0]['roomId'];
+                //         updateUserStatus({userId:data.userId}, (status, values) => {
+                //             console.log(`Client ${data.userId} status has been updated`);
+                //             socket.leave(roomId);
+                //         });
 
 
-                    }
-                });
+                //     }
+                // });
             }
         });
 
@@ -232,47 +241,47 @@ module.exports = io => {
             connectedUsers= io.engine.clientsCount;
             io.sockets.emit('getCount',connectedUsers);
 
-            getRoomId({socketId:socket.id}, (sql,values,db)=> {
-                const connectedUsers = JSON.parse(JSON.stringify(values));
-                if(connectedUsers.length > 0) {
-                    const disconnectedUser = connectedUsers[0];
-                    const roomId = disconnectedUser['roomId'];
-                    const userId = disconnectedUser['userId'];
+            // getRoomId({socketId:socket.id}, (sql,values,db)=> {
+            //     const connectedUsers = JSON.parse(JSON.stringify(values));
+            //     if(connectedUsers.length > 0) {
+            //         const disconnectedUser = connectedUsers[0];
+            //         const roomId = disconnectedUser['roomId'];
+            //         const userId = disconnectedUser['userId'];
 
-                    if(roomId) {
-                        socket.to(roomId).emit('userLeft', {userId: disconnectedUser['userId']});
+            //         if(roomId) {
+            //             socket.to(roomId).emit('userLeft', {userId: disconnectedUser['userId']});
 
-                        io.of('/').in(roomId).clients((error, socketIds) => {
-                            if (error) throw error;
-                            socketIds.forEach(socketId => {
-                                const currentSocket = io.sockets.sockets[socketId];
-                                if(socketId !== socket.id) {
-                                    checkUserExists({socketId:socketId},(status,values)=> {
-                                        const userExists = JSON.parse(JSON.stringify(values));
-                                        if(userExists.length > 0){
-                                            const userExistsUserId = userExists[0]['userId'];
+            //             io.of('/').in(roomId).clients((error, socketIds) => {
+            //                 if (error) throw error;
+            //                 socketIds.forEach(socketId => {
+            //                     const currentSocket = io.sockets.sockets[socketId];
+            //                     if(socketId !== socket.id) {
+            //                         checkUserExists({socketId:socketId},(status,values)=> {
+            //                             const userExists = JSON.parse(JSON.stringify(values));
+            //                             if(userExists.length > 0){
+            //                                 const userExistsUserId = userExists[0]['userId'];
                                         
-                                            updateUserStatus({userId: userExistsUserId}, (status, values) => {
-                                                console.log(`Client ${userExistsUserId} status has been updated`);
-                                            });
-                                        }
-                                    });
+            //                                 updateUserStatus({userId: userExistsUserId}, (status, values) => {
+            //                                     console.log(`Client ${userExistsUserId} status has been updated`);
+            //                                 });
+            //                             }
+            //                         });
 
-                                }
-                                currentSocket.leave(roomId);
-                            });
-                            console.log(`Client - ${socketIds} removed from the room ${roomId}`);
-                        });
-                    }
+            //                     }
+            //                     currentSocket.leave(roomId);
+            //                 });
+            //                 console.log(`Client - ${socketIds} removed from the room ${roomId}`);
+            //             });
+            //         }
 
 
-                    deleteUser({userId}, (sql, values, db) => {
-                        console.log(`Client ${userId} has been removed from the database`);
-                    })
+            //         deleteUser({userId}, (sql, values, db) => {
+            //             console.log(`Client ${userId} has been removed from the database`);
+            //         })
 
-                }
+            //     }
 
-            });
+            // });
 
 
         });

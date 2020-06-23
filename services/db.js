@@ -1,4 +1,20 @@
 const mysql = require('mysql');
+const mongoose = require('mongoose');
+const uri = "mongodb+srv://Dulajdeshan:DulajDeshan@96@cluster0-bvoea.mongodb.net/omeglechat?retryWrites=true&w=majority";
+
+mongoose.connect(uri,{ useNewUrlParser: true, useUnifiedTopology:true });
+const mongooseDb = mongoose.connection;
+
+//Schemas
+const userSchema = new mongoose.Schema({
+    id: String,
+    userId: String,
+    roomId: {type: String, default: null},
+    gender: {type: String, default: null},
+    isConnected: {type: Boolean, default: false},
+    
+  });
+
 
 
 const pool = mysql.createPool({
@@ -9,6 +25,111 @@ const pool = mysql.createPool({
 });
 
 exports.database = pool;
+
+
+
+exports.addMongoUser = function(data) {
+    const {socketId, userId, gender} = data;
+
+    const _user = mongoose.model('User',userSchema);
+    mongooseDb.on('error', function(err){
+        return;
+    });
+    mongooseDb.once('open', function() {
+        _user.find({userId:userId}, function(err,findUser) {
+            if(err) return;
+
+            if(!(findUser.length > 0)) {
+                const currentUser = new _user({
+                    id: socketId,
+                    userId: userId,
+                    gender: gender
+                });
+
+                currentUser.save(function(err, savedUser) {
+                    if(err) return;
+                    console.log(`Mongoose: User added with userId: ${userId}`);
+                })
+                  
+            }else {
+                const currentUser = findUser[0];
+                _user.updateOne({userId:userId},{$set:{id:socketId}})
+                .then(res => {
+                    console.log(`Mongoose: User updated with id: ${socketId} of userId: ${userId}`);
+                })
+            }
+        })
+       
+    });
+
+}
+
+exports.updateMongoUser = function(data) {
+    const {socketId, userId} = data;
+
+    const _user = mongoose.model('User',userSchema);
+    mongooseDb.on('error', function(err){
+        return;
+    });
+    mongooseDb.once('open', function() {
+        _user.find({userId:userId}, function(err,findUser) {
+            if(err) return;
+
+            if(findUser.length > 0) {
+                _user.updateOne({userId:userId},{$set:{id:socketId}})
+                .then(res => {
+                    console.log(`Mongoose: User updated with id: ${socketId} of userId: ${userId}`);
+                })
+            }
+        })
+       
+    });
+
+}
+
+
+exports.updateMongoUserGender = function(data) {
+    const {userId,gender} = data;
+
+    const _user = mongoose.model('User',userSchema);
+    mongooseDb.on('error', function(err){
+        return;
+    });
+    mongooseDb.once('open', function() {
+        _user.find({userId:userId}, function(err,findUser) {
+            if(err) return;
+            return findUser.length > 0;
+        })
+       
+    });
+
+}
+
+exports.checkUserExists = function(data) {
+    const {userId} = data;
+
+    const _user = mongoose.model('User',userSchema);
+    mongooseDb.on('error', function(err){
+       return;
+    });
+    mongooseDb.once('open', function() {
+        _user.find({userId:userId}, function(err,findUser) {
+            if(err) return;
+
+            if(findUser.length > 0) {
+                _user.updateOne({userId:userId},{$set:{id:socketId}})
+                .then(res => {
+                    console.log(`Mongoose: User updated with gender: ${gender} of userId: ${userId}`);
+                })
+            }
+        })
+       
+    });
+
+}
+
+
+
 
 
 exports.addUser = function(data,callback) {
